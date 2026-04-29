@@ -16,9 +16,8 @@ const expenseSchema = new mongoose.Schema({
     maxlength: [200, 'Tiêu đề không được quá 200 ký tự'],
   },
   amount: {
-    type: Number,
+    type: mongoose.Schema.Types.Mixed,
     required: [true, 'Số tiền là bắt buộc'],
-    min: [0, 'Số tiền phải lớn hơn 0'],
   },
   type: {
     type: String,
