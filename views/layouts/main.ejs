@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof title !== 'undefined' ? title + ' — ' : '' %><%= appName %></title>
+  <meta name="description" content="Theo dõi chi tiêu hằng ngày và hàng tháng" />
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <!-- HTMX -->
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <!-- Animate.css -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="/css/app.css" />
+  
+  <style>
+    /* SPA Transition Effects */
+    #page-content { transition: opacity 0.3s ease-out, transform 0.3s ease-out; }
+    .htmx-swapping #page-content { opacity: 0; transform: translateY(5px); }
+    .htmx-added #page-content { opacity: 0; transform: translateY(5px); }
+    
+    .htmx-indicator { display: none; }
+    .htmx-request .htmx-indicator { display: block; }
+    .htmx-request.loading-overlay { display: flex; }
+    
+    /* Modern Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--brand); }
+
+    /* Modern Inputs Styling */
+    .form-control {
+      appearance: none;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+    .form-control:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px var(--brand-glow);
+      background: var(--bg-3);
+    }
+    
+    /* Emoji Picker Preview */
+    .emoji-preview-btn {
+      width: 46px; height: 46px; border-radius: 12px; background: var(--bg-3); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: all 0.2s ease;
+    }
+    .emoji-preview-btn:hover { border-color: var(--brand); background: var(--bg-4); }
+  </style>
+  <link rel="icon" href="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4b0.png" type="image/png">
+</head>
+<body data-user-id="<%= user ? user._id : '' %>">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="/dashboard" class="sidebar-brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="10" fill="url(#brandGrad)"/>
+            <path d="M8 22L13 15L17 19L22 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="22" cy="12" r="2.5" fill="white"/>
+            <defs>
+              <linearGradient id="brandGrad" x1="0" y1="0" x2="32" y2="32">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="100%" stop-color="#8b5cf6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="brand-name">SpendWise</span>
+      </a>
+      <button class="sidebar-toggle-btn" id="sidebarClose" aria-label="Đóng menu">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-label">Tổng quan</div>
+      <a href="/dashboard" class="nav-item <%= currentPath === '/dashboard' ? 'active' : '' %>" hx-get="/dashboard" hx-target="#page-content" hx-push-url="true">
+        <i data-lucide="layout-dashboard"></i>
+        <span>Dashboard</span>
+      </a>
+      
+      <div class="nav-label">Quản lý</div>
+      <a href="/expenses" class="nav-item <%= currentPath.startsWith('/expenses') ? 'active' : '' %>" hx-get="/expenses" hx-target="#page-content" hx-push-url="true">
+        <i data-lucide="receipt"></i>
+        <span>Chi Tiêu</span>
+      </a>
+      <a href="/budgets" class="nav-item <%= currentPath.startsWith('/budgets') ? 'active' : '' %>" hx-get="/budgets" hx-target="#page-content" hx-push-url="true">
+        <i data-lucide="piggy-bank"></i>
+        <span>Ngân Sách</span>
+      </a>
+      <a href="/categories" class="nav-item <%= currentPath.startsWith('/categories') ? 'active' : '' %>" hx-get="/categories" hx-target="#page-content" hx-push-url="true">
+        <i data-lucide="tags"></i>
+        <span>Danh Mục</span>
+      </a>
+
+      <div class="nav-label">Báo cáo</div>
+      <a href="/reports/monthly" class="nav-item" hx-get="/reports/monthly" hx-target="#page-content" hx-push-url="true">
+        <i data-lucide="bar-chart-3"></i>
+        <span>Báo Cáo Tháng</span>
+      </a>
+      <a href="/reports/yearly" class="nav-item" hx-get="/reports/yearly" hx-target="#page-content" hx-push-url="true">
+        <i data-lucide="trending-up"></i>
+        <span>Báo Cáo Năm</span>
+      </a>
+
+      <div class="nav-label">Tài khoản</div>
+      <a href="/user/settings" class="nav-item" hx-get="/user/settings" hx-target="#page-content" hx-push-url="true">
+        <i data-lucide="settings"></i>
+        <span>Cài Đặt</span>
+      </a>
+      <a href="/auth/logout" class="nav-item text-danger">
+        <i data-lucide="log-out"></i>
+        <span>Đăng Xuất</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar-sm">
+          <%= user ? user.name.charAt(0).toUpperCase() : 'U' %>
+        </div>
+        <div class="user-info">
+          <span class="user-name-sm"><%= user ? user.name : '' %></span>
+          <span class="user-role"><%= user && user.role === 'admin' ? 'Admin' : 'Thành viên' %></span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-wrapper" id="mainWrapper">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="sidebarToggle" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="breadcrumb-text" id="breadcrumb-text"><%= typeof title !== 'undefined' ? title : '' %></div>
+      </div>
+      <div class="topbar-right">
+        <!-- Quick Add -->
+        <button class="btn-icon" id="quickAddBtn" title="Thêm nhanh">
+          <i data-lucide="plus"></i>
+        </button>
+        <!-- Theme Toggle -->
+        <button class="btn-icon" id="themeToggle" title="Đổi giao diện">
+          <i data-lucide="moon"></i>
+        </button>
+        <!-- Notifications -->
+        <button class="btn-icon position-relative" id="notifBtn" title="Thông báo">
+          <i data-lucide="bell"></i>
+          <span class="notif-badge" id="notifBadge" style="display:none"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content" id="page-content">
+      <%- body %>
+    </main>
+  </div>
+
+  <!-- Emoji Picker Modal -->
+  <div class="modal-overlay" id="emojiModal">
+    <div class="modal-box" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>Chọn Biểu Tượng</h3>
+        <button class="modal-close" onclick="document.getElementById('emojiModal').classList.remove('active')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; max-height: 300px; overflow-y: auto; padding: 5px;" id="emojiGrid">
+          <!-- Emojis populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Quick Add Modal (Now using modern form handling) -->
+  <div class="modal-overlay" id="quickAddModal">
+    <div class="modal-box animate__animated animate__zoomIn animate__faster">
+      <div class="modal-header">
+        <h3>Thêm Giao Dịch</h3>
+        <button class="modal-close" id="quickAddClose"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <form action="/expenses" method="POST" id="quickAddForm">
+          <div class="tab-group">
+            <button type="button" class="tab-btn active" data-type="expense">Chi tiêu</button>
+            <button type="button" class="tab-btn" data-type="income">Thu nhập</button>
+          </div>
+          <input type="hidden" name="type" id="quickType" value="expense" />
+
+          <div class="form-group">
+            <input type="text" name="title" class="form-control" placeholder="Tiêu đề giao dịch..." required />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <input type="number" name="amount" class="form-control" placeholder="Số tiền" min="0" step="1000" required />
+            </div>
+            <div class="form-group">
+              <input type="date" name="date" class="form-control" id="quickDate" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <select name="category" class="form-control" id="quickCategory" required>
+              <option value="">Chọn danh mục...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <select name="paymentMethod" class="form-control">
+              <option value="cash">Tiền mặt</option>
+              <option value="card">Thẻ</option>
+              <option value="transfer">Chuyển khoản</option>
+              <option value="ewallet">Ví điện tử</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary w-full">
+            <i data-lucide="plus-circle" style="width:18px;height:18px"></i> Thêm Giao Dịch
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications Panel -->
+  <div class="notif-panel" id="notifPanel">
+    <div class="notif-header">
+      <span>Thông Báo</span>
+      <button id="clearNotif" class="btn-text-sm">Xóa tất cả</button>
+    </div>
+    <div class="notif-list" id="notifList">
+      <div class="notif-empty">Chưa có thông báo</div>
+    </div>
+  </div>
+
+  <!-- Socket.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Main JS -->
+  <script src="/js/app.js"></script>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+    
+    // Handle HTMX events
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+      if (window.lucide) lucide.createIcons();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      const newTitleHeader = evt.detail.xhr.getResponseHeader('X-Page-Title');
+      if (newTitleHeader) {
+        const newTitle = decodeURIComponent(newTitleHeader);
+        document.title = newTitle + ' — SpendWise';
+        const breadcrumb = document.getElementById('breadcrumb-text');
+        if (breadcrumb) breadcrumb.innerText = newTitle;
+      }
+
+      // Sync sidebar active state
+      const path = window.location.pathname;
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        const href = item.getAttribute('href');
+        if (href === path || (href !== '/dashboard' && path.startsWith(href))) {
+          item.classList.add('active');
+        }
+      });
+    });
+
+    // Global Error Handling for HTMX
+    document.body.addEventListener('htmx:responseError', function(evt) {
+      const errorMsg = evt.detail.xhr.statusText || 'Có lỗi xảy ra khi kết nối máy chủ.';
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi Hệ Thống',
+        text: errorMsg,
+        confirmButtonColor: 'var(--brand)',
+        background: 'var(--bg-2)',
+        color: 'var(--text-1)'
+      });
+    });
+
+    document.body.addEventListener('htmx:sendError', function(evt) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi Kết Nối',
+        text: 'Không thể kết nối tới máy chủ. Vui lòng kiểm tra internet.',
+        confirmButtonColor: 'var(--brand)',
+        background: 'var(--bg-2)',
+        color: 'var(--text-1)'
+      });
+    });
+
+    // Emoji Picker Logic
+    const EMOJIS = ['💰','💳','🏦','🍜','🚗','🏠','👕','🛒','🏥','🎮','🎓','✈️','🎁','🔋','🐶','🍿','💼','🛠️','📱','🚲','🕯️','💊','🧺','🧹','🍼','🥩','🍎','🥦','🍕','🍺','☕','🍦'];
+    let currentEmojiTarget = null;
+
+    function openEmojiPicker(targetInputId, previewBtnId) {
+      const modal = document.getElementById('emojiModal');
+      const grid = document.getElementById('emojiGrid');
+      grid.innerHTML = EMOJIS.map(e => `<div class="emoji-item" style="font-size:24px; cursor:pointer; padding:10px; border-radius:10px; display:flex; justify-content:center; align-items:center; transition:background 0.2s;" onclick="selectEmoji('${e}', '${targetInputId}', '${previewBtnId}')">${e}</div>`).join('');
+      modal.classList.add('active');
+      
+      // Add hover effect
+      grid.querySelectorAll('.emoji-item').forEach(item => {
+        item.onmouseover = () => item.style.background = 'var(--bg-hover)';
+        item.onmouseout = () => item.style.background = 'transparent';
+      });
+    }
+
+    function selectEmoji(emoji, targetInputId, previewBtnId) {
+      const input = document.getElementById(targetInputId);
+      const btn = document.getElementById(previewBtnId);
+      if (input) input.value = emoji;
+      if (btn) btn.innerText = emoji;
+      document.getElementById('emojiModal').classList.remove('active');
+    }
+    window.openEmojiPicker = openEmojiPicker;
+    window.selectEmoji = selectEmoji;
+
+
+    // Close modal after successful HTMX submit if needed
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+      if (evt.detail.successful && evt.detail.elt.id === 'quickAddForm') {
+        document.getElementById('quickAddModal').classList.remove('active');
+      }
+    });
+
+    // Flash Message Handling
+    <% if (messages.success && messages.success.length > 0) { %>
+      Swal.fire({
+        icon: 'success',
+        title: 'Thành công!',
+        text: '<%= messages.success[0] %>',
+        timer: 3000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+        background: 'var(--bg-2)',
+        color: 'var(--text-1)'
+      });
+    <% } %>
+
+    <% if (messages.error && messages.error.length > 0) { %>
+      Swal.fire({
+        icon: 'error',
+        title: 'Thông báo',
+        text: '<%= messages.error[0] %>',
+        background: 'var(--bg-2)',
+        color: 'var(--text-1)',
+        confirmButtonColor: 'var(--brand)'
+      });
+    <% } %>
+
+    <% if (messages.info && messages.info.length > 0) { %>
+      Swal.fire({
+        icon: 'info',
+        text: '<%= messages.info[0] %>',
+        timer: 3000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+        background: 'var(--bg-2)',
+        color: 'var(--text-1)'
+      });
+    <% } %>
+  </script>
+  <% if (typeof scripts !== 'undefined') { %><%- scripts %><% } %>
+</body>
+</html>

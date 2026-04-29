@@ -1,0 +1,79 @@
+<div class="flex-between mb-6">
+  <h2 style="font-size:18px;font-weight:800">Báo Cáo Tháng <%= selectedMonth %>/<%= selectedYear %></h2>
+  <div style="display:flex;gap:10px;align-items:center">
+    <form method="GET" style="display:flex;gap:8px">
+      <select name="month" class="form-control" style="width:auto">
+        <% for(let m=1;m<=12;m++){ %><option value="<%= m %>" <%= m===selectedMonth?'selected':'' %>>Tháng <%= m %></option><% } %>
+      </select>
+      <select name="year" class="form-control" style="width:auto">
+        <% for(let y=new Date().getFullYear();y>=2020;y--){ %><option value="<%= y %>" <%= y===selectedYear?'selected':'' %>><%= y %></option><% } %>
+      </select>
+      <button type="submit" class="btn-primary">Xem</button>
+    </form>
+    <a href="/reports/export?startDate=<%= selectedYear %>-<%= String(selectedMonth).padStart(2,'0') %>-01&endDate=<%= selectedYear %>-<%= String(selectedMonth).padStart(2,'0') %>-31" class="btn-secondary"><i class="fa fa-download"></i> Xuất CSV</a>
+  </div>
+</div>
+
+<div class="stats-grid mb-6">
+  <div class="stat-card" style="--accent-color:#ef4444"><div class="stat-header"><span class="stat-label">Tổng Chi Tiêu</span></div><div class="stat-value negative"><%= (stats.totalExpense/1000000).toFixed(2) %>M</div><div class="stat-sub"><%= stats.expenseCount %> giao dịch</div></div>
+  <div class="stat-card" style="--accent-color:#22c55e"><div class="stat-header"><span class="stat-label">Tổng Thu Nhập</span></div><div class="stat-value positive"><%= (stats.totalIncome/1000000).toFixed(2) %>M</div><div class="stat-sub"><%= stats.incomeCount %> giao dịch</div></div>
+  <div class="stat-card" style="--accent-color:#6366f1"><div class="stat-header"><span class="stat-label">Số Dư</span></div><div class="stat-value <%= stats.balance>=0?'positive':'negative' %>"><%= (Math.abs(stats.balance)/1000000).toFixed(2) %>M</div><div class="stat-sub">Tiết kiệm <%= stats.savingsRate %>%</div></div>
+  <div class="stat-card" style="--accent-color:#f59e0b"><div class="stat-header"><span class="stat-label">Chi Tiêu TB/Lần</span></div><div class="stat-value"><%= (stats.avgExpense/1000).toFixed(0) %>k</div><div class="stat-sub">đồng/giao dịch</div></div>
+</div>
+
+<div class="grid-2 mb-6">
+  <div class="card"><div class="card-header"><span class="card-title"><i class="fa fa-chart-bar"></i> Chi Tiêu Theo Ngày</span></div>
+    <div class="card-body"><div style="height:220px"><canvas id="dailyChart" role="img" aria-label="Chi tiêu hàng ngày"></canvas></div></div>
+  </div>
+  <div class="card"><div class="card-header"><span class="card-title"><i class="fa fa-chart-pie"></i> Theo Danh Mục</span></div>
+    <div class="card-body">
+      <div style="display:flex;gap:16px;align-items:center">
+        <div style="width:160px;height:160px;flex-shrink:0"><canvas id="catChart" role="img" aria-label="Phân bổ danh mục"></canvas></div>
+        <div style="flex:1">
+          <% categoryBreakdown.slice(0,6).forEach(function(c){ %>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px">
+            <div style="width:8px;height:8px;border-radius:2px;background:<%= c.categoryInfo.color %>;flex-shrink:0"></div>
+            <span style="flex:1;color:var(--text-2)"><%= c.categoryInfo.name %></span>
+            <span style="font-weight:700"><%= (c.total/1000000).toFixed(2) %>M</span>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-6"><div class="card-header"><span class="card-title"><i class="fa fa-chart-line"></i> So Sánh 6 Tháng Gần Nhất</span></div>
+  <div class="card-body"><div style="height:200px"><canvas id="compChart" role="img" aria-label="So sánh 6 tháng"></canvas></div></div>
+</div>
+
+<div class="card"><div class="card-header"><span class="card-title"><i class="fa fa-arrow-trend-up"></i> Top 5 Chi Tiêu Lớn Nhất</span></div>
+  <div class="card-body" style="padding:0">
+    <table><thead><tr><th>Tiêu đề</th><th>Danh mục</th><th>Ngày</th><th class="text-right">Số tiền</th></tr></thead>
+    <tbody>
+    <% topExpenses.forEach(function(e){ %>
+    <tr>
+      <td style="font-weight:600"><%= e.title %></td>
+      <td><% if(e.category){ %><span class="cat-chip"><%= e.category.icon %> <%= e.category.name %></span><% } %></td>
+      <td class="text-muted"><%= new Date(e.date).toLocaleDateString('vi-VN') %></td>
+      <td class="text-right"><span class="amount amount-expense">-<%= e.amount.toLocaleString('vi-VN') %>đ</span></td>
+    </tr>
+    <% }) %>
+    </tbody></table>
+  </div>
+</div>
+
+<script>
+(function() {
+  const daily = <%- JSON.stringify(dailyData) %>;
+  const cats = <%- JSON.stringify(categoryBreakdown) %>;
+  const comp = <%- JSON.stringify(comparisonData) %>;
+  const monthNames = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'];
+
+  new Chart(document.getElementById('dailyChart'),{type:'bar',data:{labels:Array.from({length:daily.expense.length},(_,i)=>i+1),datasets:[{label:'Chi tiêu',data:daily.expense,backgroundColor:'rgba(239,68,68,.7)',borderRadius:3,borderSkipped:false},{label:'Thu nhập',data:daily.income,backgroundColor:'rgba(34,197,94,.7)',borderRadius:3,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#44445a',font:{size:10},maxTicksLimit:10},grid:{display:false},border:{display:false}},y:{ticks:{color:'#44445a',font:{size:10},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1000?(v/1000)+'k':v},grid:{color:'rgba(255,255,255,0.04)'},border:{display:false}}}}});
+
+  if(cats.length>0) new Chart(document.getElementById('catChart'),{type:'doughnut',data:{labels:cats.map(c=>c.categoryInfo.name),datasets:[{data:cats.map(c=>c.total),backgroundColor:cats.map(c=>c.categoryInfo.color),borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false}}}});
+
+  new Chart(document.getElementById('compChart'),{type:'bar',data:{labels:comp.map(c=>monthNames[c.month-1]+'/'+c.year),datasets:[{label:'Chi tiêu',data:comp.map(c=>c.expense),backgroundColor:'rgba(239,68,68,.7)',borderRadius:3},{label:'Thu nhập',data:comp.map(c=>c.income),backgroundColor:'rgba(34,197,94,.7)',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#44445a',font:{size:11}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#44445a',font:{size:10},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v},grid:{color:'rgba(255,255,255,0.04)'},border:{display:false}}}}});
+})();
+</script>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Lỗi <%= code %> — SpendWise</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+  <link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div style="text-align:center;max-width:400px">
+    <div style="font-size:80px;font-weight:800;color:var(--text-3);line-height:1;margin-bottom:16px"><%= code %></div>
+    <h1 style="font-size:20px;font-weight:700;margin-bottom:8px"><%= code===404?'Không tìm thấy trang':code===403?'Không có quyền truy cập':'Lỗi máy chủ' %></h1>
+    <p style="color:var(--text-2);margin-bottom:24px"><%= message %></p>
+    <a href="/dashboard" class="btn-primary"><i class="fa fa-house"></i> Về Trang Chủ</a>
+  </div>
+</div>
+<script>const s=localStorage.getItem('sw-theme')||'dark';document.documentElement.setAttribute('data-theme',s);</script>
+</body>
+</html>

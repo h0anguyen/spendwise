@@ -1,0 +1,126 @@
+<div class="flex-between mb-6">
+  <h2 style="font-size:20px;font-weight:800">Thêm Giao Dịch Mới</h2>
+  <a href="/expenses" class="btn-secondary"><i data-lucide="arrow-left"></i> Quay lại</a>
+</div>
+
+<div style="display: flex; justify-content: center;">
+  <div class="card" style="width:100%; max-width:680px; border-radius: 20px; box-shadow: 0 10px 40px var(--shadow);">
+    <div class="card-body" style="padding: 32px;">
+      <form action="/expenses" method="POST" enctype="multipart/form-data">
+        <div class="tab-group mb-6" style="padding: 5px; background: var(--bg-3); border-radius: 14px;">
+          <button type="button" class="tab-btn active" data-type="expense" style="padding: 12px;">Chi tiêu</button>
+          <button type="button" class="tab-btn" data-type="income" style="padding: 12px;">Thu nhập</button>
+        </div>
+        <input type="hidden" name="type" id="typeInput" value="expense"/>
+        
+        <div class="form-row mb-4" style="gap: 20px;">
+          <div class="form-group">
+            <label class="form-label">Tiêu đề *</label>
+            <input type="text" name="title" class="form-control" placeholder="VD: Mua sắm cuối tuần" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số tiền (đ) *</label>
+            <input type="number" name="amount" class="form-control" placeholder="0" min="0" step="1000" required style="font-weight: 700; font-size: 16px;"/>
+          </div>
+        </div>
+
+        <div class="form-row mb-4" style="gap: 20px;">
+          <div class="form-group">
+            <label class="form-label">Danh mục *</label>
+            <select name="category" class="form-control" required style="cursor: pointer;">
+              <option value="">Chọn danh mục...</option>
+              <% categories.forEach(function(cat){ %>
+              <option value="<%= cat._id %>"><%= cat.icon %> <%= cat.name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ngày giao dịch *</label>
+            <input type="date" name="date" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>" required/>
+          </div>
+        </div>
+
+        <div class="form-row mb-4" style="gap: 20px;">
+          <div class="form-group">
+            <label class="form-label">Phương thức thanh toán</label>
+            <select name="paymentMethod" class="form-control" style="cursor: pointer;">
+              <option value="cash">Tiền mặt</option>
+              <option value="card">Thẻ ngân hàng</option>
+              <option value="transfer">Chuyển khoản</option>
+              <option value="ewallet">Ví điện tử</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gắn thẻ (Tags)</label>
+            <input type="text" name="tags" class="form-control" placeholder="Gia đình, du lịch..."/>
+          </div>
+        </div>
+
+        <div class="form-group mb-6">
+          <label class="form-label">Ghi chú chi tiết</label>
+          <textarea name="note" class="form-control" rows="3" placeholder="Thông tin thêm về giao dịch..."></textarea>
+        </div>
+
+        <div class="form-group mb-6">
+          <label class="form-label">Hóa đơn / Ảnh minh họa</label>
+          <div style="position: relative;">
+            <input type="file" name="receipt" class="form-control" accept="image/*,.pdf" style="padding-left: 45px;"/>
+            <i data-lucide="image" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 18px; color: var(--text-3);"></i>
+          </div>
+        </div>
+
+        <div class="form-group mb-8" style="background: var(--bg-3); padding: 20px; border-radius: 16px; border: 1px dashed var(--border);">
+          <label class="custom-checkbox">
+            <input type="checkbox" name="isRecurring" id="recurringCheck"/>
+            <span class="checkmark"><i data-lucide="check"></i></span>
+            <span style="font-weight: 600; color: var(--text-2);">Thiết lập lặp lại tự động</span>
+          </label>
+          
+          <div id="recurringOptions" style="display:none; margin-top: 20px; animation: slideDown 0.3s ease-out;">
+            <div class="form-row" style="gap: 20px;">
+              <div class="form-group">
+                <label class="form-label">Tần suất</label>
+                <select name="recurringFrequency" class="form-control">
+                  <option value="daily">Hàng ngày</option>
+                  <option value="weekly">Hàng tuần</option>
+                  <option value="monthly" selected>Hàng tháng</option>
+                  <option value="yearly">Hàng năm</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Ngày kết thúc</label>
+                <input type="date" name="recurringEndDate" class="form-control"/>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary w-full" style="padding: 16px; font-size: 16px;">
+          <i data-lucide="plus-circle"></i> Xác nhận thêm giao dịch
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const recurringCheck = document.getElementById('recurringCheck');
+    const recurringOptions = document.getElementById('recurringOptions');
+    if (recurringCheck && recurringOptions) {
+      recurringCheck.addEventListener('change', function() {
+        recurringOptions.style.display = this.checked ? 'block' : 'none';
+      });
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('typeInput').value = btn.dataset.type;
+      });
+    });
+    
+    if (window.lucide) lucide.createIcons();
+  })();
+</script>

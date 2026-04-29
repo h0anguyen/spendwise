@@ -1,0 +1,218 @@
+<div class="stats-grid mb-8" style="gap: 20px;">
+  <div class="stat-card" style="--accent-color:#ef4444;--icon-bg:rgba(239,68,68,.12);--icon-color:#ef4444; padding: 24px;">
+    <div class="stat-header mb-4">
+      <span class="stat-label">Chi Tiêu Tháng</span>
+      <div class="stat-icon"><i data-lucide="trending-down"></i></div>
+    </div>
+    <div class="stat-value negative" style="font-size: 32px;"><%= (stats.monthlyExpense/1000000).toFixed(2) %>M</div>
+    <div class="stat-sub mt-2">VNĐ</div>
+  </div>
+  <div class="stat-card" style="--accent-color:#22c55e;--icon-bg:rgba(34,197,94,.12);--icon-color:#22c55e; padding: 24px;">
+    <div class="stat-header mb-4">
+      <span class="stat-label">Thu Nhập Tháng</span>
+      <div class="stat-icon"><i data-lucide="trending-up"></i></div>
+    </div>
+    <div class="stat-value positive" style="font-size: 32px;"><%= (stats.monthlyIncome/1000000).toFixed(2) %>M</div>
+    <div class="stat-sub mt-2">VNĐ</div>
+  </div>
+  <div class="stat-card" style="--accent-color:#6366f1; padding: 24px;">
+    <div class="stat-header mb-4">
+      <span class="stat-label">Số Dư</span>
+      <div class="stat-icon"><i data-lucide="wallet"></i></div>
+    </div>
+    <div class="stat-value <%= stats.monthlyBalance >= 0 ? 'positive' : 'negative' %>" style="font-size: 32px;">
+      <%= (Math.abs(stats.monthlyBalance)/1000000).toFixed(2) %>M
+    </div>
+    <div class="stat-sub mt-2"><%= stats.monthlyBalance >= 0 ? 'Tiết kiệm được' : 'Bội chi' %></div>
+  </div>
+  <div class="stat-card" style="--accent-color:#f59e0b;--icon-bg:rgba(245,158,11,.12);--icon-color:#f59e0b; padding: 24px;">
+    <div class="stat-header mb-4">
+      <span class="stat-label">Chi Tiêu Hôm Nay</span>
+      <div class="stat-icon"><i data-lucide="calendar"></i></div>
+    </div>
+    <div class="stat-value" style="font-size: 32px;"><%= (stats.todayExpense/1000).toFixed(0) %>k</div>
+    <div class="stat-sub mt-2">VNĐ</div>
+  </div>
+</div>
+
+<div class="grid-2 mb-8" style="gap: 24px;">
+  <!-- Daily Trend Chart -->
+  <div class="card">
+    <div class="card-header" style="padding: 20px;">
+      <span class="card-title"><i data-lucide="bar-chart-3"></i> Chi Tiêu Theo Ngày — <%= currentMonth %>/<%= currentYear %></span>
+    </div>
+    <div class="card-body" style="padding: 24px;">
+      <div class="chart-container" style="height:250px">
+        <canvas id="dailyChart" role="img" aria-label="Biểu đồ chi tiêu theo ngày"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Breakdown -->
+  <div class="card">
+    <div class="card-header" style="padding: 20px;">
+      <span class="card-title"><i data-lucide="pie-chart"></i> Theo Danh Mục</span>
+    </div>
+    <div class="card-body" style="padding: 24px;">
+      <div style="display:flex;align-items:center;gap:32px">
+        <div style="width:180px;height:180px;flex-shrink:0">
+          <canvas id="catChart" role="img" aria-label="Biểu đồ danh mục chi tiêu"></canvas>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:12px" id="catLegend">
+          <% categoryBreakdown.forEach(function(cat, i) { %>
+          <div style="display:flex;align-items:center;gap:12px;font-size:13px">
+            <div style="width:10px;height:10px;border-radius:3px;background:<%= cat.categoryInfo.color %>;flex-shrink:0"></div>
+            <span style="flex:1;color:var(--text-2)"><%= cat.categoryInfo.icon %> <%= cat.categoryInfo.name %></span>
+            <span style="font-weight:700; color:var(--text);"><%= (cat.total/1000000).toFixed(2) %>M</span>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2" style="gap: 24px;">
+  <!-- Recent Expenses -->
+  <div class="card">
+    <div class="card-header" style="padding: 20px;">
+      <span class="card-title"><i data-lucide="history"></i> Giao Dịch Gần Đây</span>
+      <a href="/expenses" class="btn-secondary btn-sm">Xem tất cả</a>
+    </div>
+    <div class="card-body" style="padding:0">
+      <% if (recentExpenses.length === 0) { %>
+      <div class="empty-state" style="padding: 48px;">
+        <i data-lucide="receipt" style="width: 48px; height: 48px; opacity: 0.2;"></i>
+        <h3 class="mt-4">Chưa có giao dịch</h3>
+        <p>Thêm giao dịch đầu tiên của bạn để bắt đầu theo dõi</p>
+      </div>
+      <% } else { %>
+      <div class="table-wrapper">
+        <table>
+          <tbody>
+          <% recentExpenses.forEach(function(exp) { %>
+          <tr class="row-hover">
+            <td style="padding: 16px 20px;">
+              <div style="display:flex;align-items:center;gap:14px">
+                <div style="width:40px;height:40px;border-radius:12px;background:var(--bg-3);display:flex;align-items:center;justify-content:center;font-size:18px; border:1px solid var(--border);">
+                  <%= exp.category ? exp.category.icon : '📌' %>
+                </div>
+                <div>
+                  <div style="font-weight:600;font-size:14px; color:var(--text);"><%= exp.title %></div>
+                  <div class="text-xs" style="color:var(--text-3); margin-top: 2px;"><%= new Date(exp.date).toLocaleDateString('vi-VN') %></div>
+                </div>
+              </div>
+            </td>
+            <td style="padding: 16px 20px;">
+              <% if (exp.category) { %>
+              <span class="cat-chip" style="background: <%= exp.category.color %>11; color: <%= exp.category.color %>; border: 1px solid <%= exp.category.color %>22;">
+                <span><%= exp.category.name %></span>
+              </span>
+              <% } %>
+            </td>
+            <td class="text-right" style="padding: 16px 20px;">
+              <span class="amount <%= exp.type === 'expense' ? 'amount-expense' : 'amount-income' %>" style="font-size: 15px; font-weight: 700;">
+                <%= exp.type === 'expense' ? '-' : '+' %><%= exp.amount.toLocaleString('vi-VN') %>đ
+              </span>
+            </td>
+          </tr>
+          <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Budget Progress -->
+  <div class="card">
+    <div class="card-header" style="padding: 20px;">
+      <span class="card-title"><i data-lucide="piggy-bank"></i> Ngân Sách Tháng</span>
+      <a href="/budgets" class="btn-secondary btn-sm">Quản lý</a>
+    </div>
+    <div class="card-body" style="padding: 24px;">
+      <% if (budgetProgress.length === 0) { %>
+      <div class="empty-state" style="padding:48px">
+        <i data-lucide="piggy-bank" style="width: 48px; height: 48px; opacity: 0.2;"></i>
+        <h3 class="mt-4">Chưa có ngân sách</h3>
+        <a href="/budgets" class="btn-primary btn-sm mt-6">Tạo ngân sách đầu tiên</a>
+      </div>
+      <% } else { %>
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <% budgetProgress.forEach(function(budget) { %>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span style="font-size:13px;font-weight:600; color:var(--text);">
+              <%= budget.category ? budget.category.icon + ' ' + budget.category.name : '💰 Tổng ngân sách' %>
+            </span>
+            <span style="font-size:13px;font-weight:700;color:<%= budget.percentage >= 90 ? 'var(--danger)' : budget.percentage >= 70 ? 'var(--warning)' : 'var(--brand)' %>">
+              <%= budget.percentage %>%
+            </span>
+          </div>
+          <div class="progress-bar-wrap" style="height: 8px;">
+            <div class="progress-bar-fill <%= budget.percentage >= 90 ? 'danger' : budget.percentage >= 70 ? 'warning' : '' %>"
+              style="width:<%= Math.min(budget.percentage, 100) %>%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px">
+            <span style="font-size:11px;color:var(--text-3); font-weight:500;"><%= (budget.spentAmount/1000).toFixed(0) %>k đã dùng</span>
+            <span style="font-size:11px;color:var(--text-3); font-weight:500;"><%= (budget.amount/1000).toFixed(0) %>k mục tiêu</span>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<style>
+  .row-hover:hover { background: var(--bg-hover); }
+  .mb-8 { margin-bottom: 32px; }
+</style>
+
+<script>
+(function() {
+  const dailyData = <%- JSON.stringify(dailyData) %>;
+  const catData = <%- JSON.stringify(categoryBreakdown) %>;
+
+  // Daily chart
+  const dailyCtx = document.getElementById('dailyChart');
+  if (dailyCtx) {
+    const labels = Array.from({length: dailyData.expense.length}, (_, i) => i + 1);
+    new Chart(dailyCtx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Chi tiêu', data: dailyData.expense, backgroundColor: 'rgba(239,68,68,0.7)', borderRadius: 3, borderSkipped: false },
+          { label: 'Thu nhập', data: dailyData.income, backgroundColor: 'rgba(34,197,94,0.7)', borderRadius: 3, borderSkipped: false }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('vi-VN')}đ` }}},
+        scales: {
+          x: { ticks: { color: '#44445a', font: { size: 10 }, maxTicksLimit: 10 }, grid: { display: false }, border: { display: false } },
+          y: { ticks: { color: '#44445a', font: { size: 10 }, callback: v => v >= 1e6 ? (v/1e6).toFixed(1) + 'M' : v >= 1000 ? (v/1000) + 'k' : v }, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } }
+        }
+      }
+    });
+  }
+
+  // Category chart
+  const catCtx = document.getElementById('catChart');
+  if (catCtx && catData.length > 0) {
+    new Chart(catCtx, {
+      type: 'doughnut',
+      data: {
+        labels: catData.map(c => c.categoryInfo.name),
+        datasets: [{ data: catData.map(c => c.total), backgroundColor: catData.map(c => c.categoryInfo.color), borderWidth: 0, hoverOffset: 4 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
+    });
+  }
+
+  // Initialize socket join
+  if (window._socket) window._socket.emit('join:user', '<%= user._id %>');
+})();
+</script>

@@ -1,0 +1,112 @@
+<div class="mb-6"><h2 style="font-size:18px;font-weight:800">Cài Đặt Tài Khoản</h2></div>
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fa fa-user"></i> Thông Tin Cá Nhân</span></div>
+    <div class="card-body">
+      <form action="/user/settings?_method=PUT" method="POST">
+        <div class="form-group">
+          <label class="form-label">Họ và tên</label>
+          <input type="text" name="name" class="form-control" value="<%= user.name %>" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" value="<%= user.email %>" disabled style="opacity:.6"/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Đơn vị tiền tệ</label>
+            <select name="currency" class="form-control">
+              <option value="VND" <%= user.currency==='VND'?'selected':'' %>>VND (đ)</option>
+              <option value="USD" <%= user.currency==='USD'?'selected':'' %>>USD ($)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ngân sách tháng (đ)</label>
+            <input type="number" name="monthlyBudget" class="form-control" value="<%= user.monthlyBudget||0 %>" min="0" step="100000"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600">
+            <input type="checkbox" name="notificationsEnabled" <%= user.notificationsEnabled?'checked':'' %>/> Bật thông báo
+          </label>
+        </div>
+        <button type="submit" class="btn-primary w-full"><i class="fa fa-floppy-disk"></i> Lưu Thay Đổi</button>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fa fa-lock"></i> Đổi Mật Khẩu</span></div>
+    <div class="card-body">
+      <form action="/user/change-password?_method=PUT" method="POST">
+        <div class="form-group">
+          <label class="form-label">Mật khẩu hiện tại</label>
+          <input type="password" name="currentPassword" class="form-control" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mật khẩu mới (ít nhất 8 ký tự)</label>
+          <input type="password" name="newPassword" class="form-control" minlength="8" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Xác nhận mật khẩu mới</label>
+          <input type="password" name="confirmPassword" class="form-control" required/>
+        </div>
+        <button type="submit" class="btn-primary w-full"><i class="fa fa-key"></i> Đổi Mật Khẩu</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2 mt-6">
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fa fa-shield-halved"></i> Mã Hóa Dữ Liệu</span></div>
+    <div class="card-body">
+      <form action="/user/encryption?_method=PUT" method="POST">
+        <div class="form-group" style="background:var(--bg-3);padding:12px;border-radius:10px;margin-bottom:20px">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700">
+            <input type="checkbox" name="enabled" <%= user.encryption && user.encryption.enabled ? 'checked' : '' %> style="width:18px;height:18px"/>
+            Bật mã hóa AES-256
+          </label>
+          <p style="font-size:12px;color:var(--text-3);margin-top:8px">Dữ liệu quan trọng sẽ được mã hóa trong cơ sở dữ liệu. Chỉ bạn mới có thể đọc được nội dung.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Các trường cần mã hóa</label>
+          <div style="display:grid;gap:10px;margin-top:10px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+              <input type="checkbox" name="field_title" <%= (!user.encryption || user.encryption.fields.title) ? 'checked' : '' %>/> Tiêu đề giao dịch
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+              <input type="checkbox" name="field_note" <%= (!user.encryption || user.encryption.fields.note) ? 'checked' : '' %>/> Ghi chú / Note
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+              <input type="checkbox" name="field_amount" <%= (user.encryption && user.encryption.fields.amount) ? 'checked' : '' %>/> Số tiền (Amount)
+            </label>
+          </div>
+        </div>
+
+        <% if (user.encryption && user.encryption.fields.amount) { %>
+          <div style="padding:10px;background:rgba(245,158,11,0.1);border-left:3px solid var(--warning);border-radius:4px;margin-bottom:15px">
+            <p style="font-size:11px;color:var(--warning);line-height:1.4">
+              <strong>Lưu ý:</strong> Khi mã hóa số tiền, hệ thống sẽ không thể tính toán tổng hoặc vẽ biểu đồ chính xác trong MongoDB. Chỉ nên bật nếu bạn cực kỳ cần bảo mật số tiền.
+            </p>
+          </div>
+        <% } %>
+
+        <button type="submit" class="btn-secondary w-full" style="border-color:var(--brand);color:var(--brand)">
+          <i class="fa fa-sync"></i> Cập Nhật Bảo Mật
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-6">
+  <div class="card-header"><span class="card-title"><i class="fa fa-circle-info"></i> Thông Tin Tài Khoản</span></div>
+  <div class="card-body">
+    <div class="grid-3">
+      <div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);margin-bottom:4px">Loại tài khoản</div><div style="font-weight:600"><%= user.role==='admin'?'Administrator':'Thành viên' %></div></div>
+      <div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);margin-bottom:4px">Ngày tham gia</div><div style="font-weight:600"><%= new Date(user.createdAt).toLocaleDateString('vi-VN') %></div></div>
+      <div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);margin-bottom:4px">Đăng nhập gần nhất</div><div style="font-weight:600"><%= user.lastLogin ? new Date(user.lastLogin).toLocaleString('vi-VN') : 'N/A' %></div></div>
+    </div>
+  </div>
+</div>

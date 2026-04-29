@@ -1,0 +1,85 @@
+<div class="flex-between mb-6">
+  <h2 style="font-size:18px;font-weight:800">Danh Sách Chi Tiêu</h2>
+  <a href="/expenses/new" class="btn-primary"><i data-lucide="plus"></i> Thêm mới</a>
+</div>
+
+<div class="card mb-6">
+  <div class="card-body">
+    <form method="GET" action="/expenses" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:12px;align-items:end">
+      <div>
+        <label class="form-label">Loại</label>
+        <select name="type" class="form-control">
+          <option value="">Tất cả</option>
+          <option value="expense" <%= filters.type==='expense'?'selected':'' %>>Chi tiêu</option>
+          <option value="income" <%= filters.type==='income'?'selected':'' %>>Thu nhập</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Từ ngày</label>
+        <input type="date" name="startDate" class="form-control" value="<%= filters.startDate||'' %>"/>
+      </div>
+      <div>
+        <label class="form-label">Đến ngày</label>
+        <input type="date" name="endDate" class="form-control" value="<%= filters.endDate||'' %>"/>
+      </div>
+      <div>
+        <label class="form-label">Tìm kiếm</label>
+        <input type="text" name="search" class="form-control" placeholder="Tiêu đề..." value="<%= filters.search||'' %>"/>
+      </div>
+      <button type="submit" class="btn-primary"><i data-lucide="filter"></i></button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body" style="padding:0">
+    <% if (expenses.length === 0) { %>
+    <div class="empty-state">
+      <i data-lucide="receipt"></i>
+      <h3>Không có giao dịch</h3>
+      <p>Thêm giao dịch đầu tiên của bạn</p>
+    </div>
+    <% } else { %>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Tiêu đề</th><th>Danh mục</th><th>Ngày</th><th>Phương thức</th>
+            <th class="text-right">Số tiền</th><th class="text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+        <% expenses.forEach(function(exp){ %>
+        <tr>
+          <td><span style="font-weight:600"><%= exp.title %></span><% if(exp.note){ %><br><span class="text-xs text-muted"><%= exp.note.substring(0,40) %></span><% } %></td>
+          <td><% if(exp.category){ %><span class="cat-chip"><%= exp.category.icon %> <%= exp.category.name %></span><% } %></td>
+          <td class="text-muted"><%= new Date(exp.date).toLocaleDateString('vi-VN') %></td>
+          <td class="text-muted"><%= ({cash:'Tiền mặt',card:'Thẻ',transfer:'Chuyển khoản',ewallet:'Ví điện tử',other:'Khác'})[exp.paymentMethod]||'' %></td>
+          <td class="text-right"><span class="amount <%= exp.type==='expense'?'amount-expense':'amount-income' %>"><%= exp.type==='expense'?'-':'+' %><%= exp.amount.toLocaleString('vi-VN') %>đ</span></td>
+          <td class="text-right">
+            <div style="display:flex;gap:6px;justify-content:flex-end">
+              <a href="/expenses/<%= exp._id %>/edit" class="btn-secondary btn-sm"><i data-lucide="edit-2" style="width:14px;height:14px"></i></a>
+              <button class="btn-danger btn-sm"
+                hx-delete="/expenses/<%= exp._id %>" 
+                hx-target="closest tr" 
+                hx-swap="outerHTML swap:400ms" 
+                hx-confirm="Bạn có chắc chắn muốn xóa giao dịch này?">
+                <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% if(pagination.totalPages > 1){ %>
+    <div class="pagination">
+      <% if(pagination.page>1){ %><a href="?page=<%= pagination.page-1 %>" class="page-btn"><i data-lucide="chevron-left" style="width:16px;height:16px"></i></a><% } %>
+      <% for(let i=1;i<=pagination.totalPages;i++){ %><a href="?page=<%= i %>" class="page-btn <%= i===pagination.page?'active':'' %>"><%= i %></a><% } %>
+      <% if(pagination.page<pagination.totalPages){ %><a href="?page=<%= pagination.page+1 %>" class="page-btn"><i data-lucide="chevron-right" style="width:16px;height:16px"></i></a><% } %>
+    </div>
+    <% } %>
+    <% } %>
+  </div>
+</div>

@@ -1,0 +1,67 @@
+<div class="flex-between mb-6">
+  <h2 style="font-size:18px;font-weight:800">Ngân Sách</h2>
+  <form method="GET" style="display:flex;gap:8px">
+    <select name="month" class="form-control" style="width:auto">
+      <% for(let m=1;m<=12;m++){ %><option value="<%= m %>" <%= m===selectedMonth?'selected':'' %>>Tháng <%= m %></option><% } %>
+    </select>
+    <select name="year" class="form-control" style="width:auto">
+      <% for(let y=new Date().getFullYear();y>=2022;y--){ %><option value="<%= y %>" <%= y===selectedYear?'selected':'' %>><%= y %></option><% } %>
+    </select>
+    <button type="submit" class="btn-secondary">Xem</button>
+  </form>
+</div>
+
+<div class="grid-2">
+  <div>
+    <div class="card mb-6">
+      <div class="card-header"><span class="card-title"><i class="fa fa-plus-circle"></i> Tạo / Cập Nhật Ngân Sách</span></div>
+      <div class="card-body">
+        <form action="/budgets" method="POST">
+          <div class="form-group">
+            <label class="form-label">Danh mục (để trống = tổng ngân sách)</label>
+            <select name="category" class="form-control">
+              <option value="">-- Ngân sách tổng --</option>
+              <% categories.forEach(function(cat){ %><option value="<%= cat._id %>"><%= cat.icon %> <%= cat.name %></option><% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số tiền ngân sách (đ) *</label>
+            <input type="number" name="amount" class="form-control" placeholder="5000000" min="0" step="100000" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cảnh báo khi đạt (%)</label>
+            <input type="number" name="alertThreshold" class="form-control" value="80" min="1" max="100"/>
+          </div>
+          <button type="submit" class="btn-primary w-full"><i class="fa fa-floppy-disk"></i> Lưu Ngân Sách</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <% if(budgets.length===0){ %>
+    <div class="card"><div class="empty-state"><i class="fa fa-piggy-bank"></i><h3>Chưa có ngân sách</h3><p>Tạo ngân sách để theo dõi chi tiêu hiệu quả hơn</p></div></div>
+    <% } else { %>
+    <% budgets.forEach(function(b){ %>
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="flex-between mb-4">
+          <span style="font-size:14px;font-weight:700"><%= b.category ? b.category.icon+' '+b.category.name : '💰 Tổng ngân sách' %></span>
+          <form action="/budgets/<%= b._id %>?_method=DELETE" method="POST" data-confirm="Xóa ngân sách này?">
+            <button type="submit" class="btn-danger btn-sm"><i class="fa fa-trash"></i></button>
+          </form>
+        </div>
+        <div style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:8px"><%= (b.amount/1000000).toFixed(2) %>M đ</div>
+        <div class="progress-bar-wrap mb-4">
+          <div class="progress-bar-fill" style="width:<%= Math.min(b.alertThreshold,100) %>%;background:var(--warning);opacity:.3"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-3)">
+          <span>Cảnh báo lúc <%= b.alertThreshold %>%</span>
+          <span>Tháng <%= selectedMonth %>/<%= selectedYear %></span>
+        </div>
+      </div>
+    </div>
+    <% }) %>
+    <% } %>
+  </div>
+</div>
