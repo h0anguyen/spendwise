@@ -106,6 +106,15 @@ app.use((req, res, next) => {
   const originalRedirect = res.redirect;
   res.redirect = function(url) {
     if (req.headers['hx-request']) {
+      // Include flash messages in header for HTMX redirects
+      const messages = {
+        success: req.flash('success'),
+        error: req.flash('error'),
+        info: req.flash('info')
+      };
+      if (messages.success.length || messages.error.length || messages.info.length) {
+        res.setHeader('X-Flash-Messages', encodeURIComponent(JSON.stringify(messages)));
+      }
       res.setHeader('HX-Location', url);
       return res.status(200).send();
     }
@@ -134,6 +143,18 @@ app.use((req, res, next) => {
     // Set default title if not provided
     const pageTitle = locals.title || '';
     
+    // For HTMX requests, we want to send flash messages in headers
+    if (req.headers['hx-request']) {
+      const messages = {
+        success: req.flash('success'),
+        error: req.flash('error'),
+        info: req.flash('info')
+      };
+      if (messages.success.length || messages.error.length || messages.info.length) {
+        res.setHeader('X-Flash-Messages', encodeURIComponent(JSON.stringify(messages)));
+      }
+    }
+
     originalRender(view, locals, (err, html) => {
       if (err) return callback ? callback(err) : next(err);
       

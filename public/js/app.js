@@ -209,14 +209,19 @@ function initSocket() {
   socket.on('expense:created', (data) => {
     addNotification('expense', `Đã thêm: ${data.expense?.title || 'Giao dịch mới'}`);
     showToast('success', `Giao dịch "${data.expense?.title}" đã được thêm`);
+    triggerRefresh();
   });
 
   socket.on('expense:updated', (data) => {
     addNotification('expense', `Đã cập nhật: ${data.expense?.title}`);
+    showToast('success', `Đã cập nhật: ${data.expense?.title}`);
+    triggerRefresh();
   });
 
   socket.on('expense:deleted', () => {
     addNotification('expense', 'Đã xóa một giao dịch');
+    showToast('info', 'Đã xóa một giao dịch');
+    triggerRefresh();
   });
 
   socket.on('budget:alert', (data) => {
@@ -339,8 +344,37 @@ document.addEventListener('DOMContentLoaded', initAll);
 // Handle HTMX content refresh (manual trigger)
 document.body.addEventListener('refreshContent', () => {
   const path = window.location.pathname;
-  htmx.ajax('GET', path, { target: '#page-content', select: '#page-content' });
+  // List of pages that should be refreshed when data changes
+  const refreshablePaths = ['/dashboard', '/expenses', '/budgets', '/categories'];
+  if (refreshablePaths.some(p => path.startsWith(p))) {
+    htmx.ajax('GET', path, { target: '#page-content', select: '#page-content' });
+  }
 });
+
+// Listen for flash messages from HTMX headers
+document.body.addEventListener('htmx:afterRequest', (evt) => {
+  const flashHeader = evt.detail.xhr.getResponseHeader('X-Flash-Messages');
+  if (flashHeader) {
+    try {
+      const messages = JSON.parse(decodeURIComponent(flashHeader));
+      if (messages.success && messages.success.length > 0) {
+        showToast('success', messages.success[0]);
+      }
+      if (messages.error && messages.error.length > 0) {
+        showToast('error', messages.error[0]);
+      }
+      if (messages.info && messages.info.length > 0) {
+        showToast('info', messages.info[0]);
+      }
+    } catch (e) {
+      console.error('Error parsing flash messages', e);
+    }
+  }
+});
+
+function triggerRefresh() {
+  document.body.dispatchEvent(new CustomEvent('refreshContent'));
+}
 
 // Export for page-specific scripts
 window.SW = { showToast, formatCurrency, addNotification };

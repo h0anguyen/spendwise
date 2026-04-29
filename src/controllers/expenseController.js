@@ -162,11 +162,7 @@ exports.deleteExpense = asyncCatch(async (req, res) => {
   const io = getIO();
   if (io) io.to(`user:${req.user._id}`).emit('expense:deleted', { id: req.params.id });
 
-  if (req.headers['hx-request']) {
-    return res.status(200).send('');
-  }
-
-  if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
+  if (req.headers['x-requested-with'] === 'XMLHttpRequest' && !req.headers['hx-request']) {
     return res.json({ success: true });
   }
 
