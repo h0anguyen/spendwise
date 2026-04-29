@@ -34,6 +34,9 @@ const apiRoutes = require('./routes/api');
 const app = express();
 const server = http.createServer(app);
 
+// Trust proxy (required for Render/Heroku/Load Balancers)
+app.set('trust proxy', 1);
+
 // ─── Database ───────────────────────────────────────────────────────────────
 connectDB();
 
