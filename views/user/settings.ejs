@@ -26,7 +26,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600">
+          <label style="display:flex;align-items:center;gap:12px;cursor:pointer;font-size:14px;font-weight:600">
             <input type="checkbox" name="notificationsEnabled" <%= user.notificationsEnabled?'checked':'' %>/> Bật thông báo
           </label>
         </div>
@@ -62,8 +62,8 @@
     <div class="card-body">
       <form action="/user/encryption?_method=PUT" method="POST">
         <div class="form-group" style="background:var(--bg-3);padding:12px;border-radius:10px;margin-bottom:20px">
-          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700">
-            <input type="checkbox" name="enabled" <%= user.encryption && user.encryption.enabled ? 'checked' : '' %> style="width:18px;height:18px"/>
+          <label style="display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:700">
+            <input type="checkbox" name="enabled" <%= user.encryption && user.encryption.enabled ? 'checked' : '' %>/>
             Bật mã hóa AES-256
           </label>
           <p style="font-size:12px;color:var(--text-3);margin-top:8px">Dữ liệu quan trọng sẽ được mã hóa trong cơ sở dữ liệu. Chỉ bạn mới có thể đọc được nội dung.</p>

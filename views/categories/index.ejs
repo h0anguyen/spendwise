@@ -21,7 +21,12 @@
           </div>
           <div class="form-group">
             <label class="form-label">Màu sắc</label>
-            <input type="color" name="color" class="form-control" value="#6366f1" style="height:46px; padding:4px; cursor:pointer;"/>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <input type="color" name="color" id="catColorInput" class="form-control" value="#6366f1" style="height:46px; padding:4px; cursor:pointer;"/>
+              <div class="color-presets" id="colorPresets">
+                <!-- Will be populated by script below -->
+              </div>
+            </div>
           </div>
         </div>
         <div class="form-group">
@@ -72,3 +77,25 @@
 <style>
   .category-item-hover:hover { border-color: var(--brand); transform: translateX(5px); background: var(--bg-3); }
 </style>
+
+<script>
+  (function() {
+    const PRESET_COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#22c55e', '#ef4444', '#06b6d4', '#8b5cf6', '#3b82f6', '#f97316', '#14b8a6'];
+    const presetContainer = document.getElementById('colorPresets');
+    const colorInput = document.getElementById('catColorInput');
+
+    if (presetContainer && colorInput) {
+      presetContainer.innerHTML = PRESET_COLORS.map(color => `
+        <div class="color-item ${color === colorInput.value ? 'active' : ''}" 
+             style="background: ${color}" 
+             onclick="selectPresetColor('${color}', this)"></div>
+      `).join('');
+    }
+
+    window.selectPresetColor = function(color, el) {
+      if (colorInput) colorInput.value = color;
+      document.querySelectorAll('.color-item').forEach(i => i.classList.remove('active'));
+      el.classList.add('active');
+    };
+  })();
+</script>

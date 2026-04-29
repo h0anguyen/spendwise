@@ -36,7 +36,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Ngày giao dịch *</label>
-            <input type="date" name="date" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>" required/>
+            <input type="text" name="date" class="form-control date-picker" value="<%= new Date().toISOString().split('T')[0] %>" required/>
           </div>
         </div>
 
@@ -63,16 +63,20 @@
 
         <div class="form-group mb-6">
           <label class="form-label">Hóa đơn / Ảnh minh họa</label>
-          <div style="position: relative;">
-            <input type="file" name="receipt" class="form-control" accept="image/*,.pdf" style="padding-left: 45px;"/>
-            <i data-lucide="image" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 18px; color: var(--text-3);"></i>
+          <div class="upload-zone" id="uploadZone">
+            <i data-lucide="upload-cloud"></i>
+            <span>Nhấn để chọn ảnh hoặc kéo thả vào đây</span>
+            <input type="file" name="receipt" id="receiptInput" accept="image/*"/>
+          </div>
+          <div class="preview-container" id="previewContainer">
+            <img src="" id="receiptPreview" alt="Preview"/>
+            <button type="button" class="preview-remove" id="removePreview"><i data-lucide="x"></i></button>
           </div>
         </div>
 
         <div class="form-group mb-8" style="background: var(--bg-3); padding: 20px; border-radius: 16px; border: 1px dashed var(--border);">
-          <label class="custom-checkbox">
+          <label style="display:flex; align-items:center; gap:12px; cursor:pointer;">
             <input type="checkbox" name="isRecurring" id="recurringCheck"/>
-            <span class="checkmark"><i data-lucide="check"></i></span>
             <span style="font-weight: 600; color: var(--text-2);">Thiết lập lặp lại tự động</span>
           </label>
           
@@ -89,7 +93,7 @@
               </div>
               <div class="form-group">
                 <label class="form-label">Ngày kết thúc</label>
-                <input type="date" name="recurringEndDate" class="form-control"/>
+                <input type="text" name="recurringEndDate" class="form-control date-picker"/>
               </div>
             </div>
           </div>
@@ -105,6 +109,15 @@
 
 <script>
   (function() {
+    // Initialize Flatpickr
+    flatpickr(".date-picker", {
+      locale: "vn",
+      dateFormat: "Y-m-d",
+      altInput: true,
+      altFormat: "d/m/Y",
+      disableMobile: "true"
+    });
+
     const recurringCheck = document.getElementById('recurringCheck');
     const recurringOptions = document.getElementById('recurringOptions');
     if (recurringCheck && recurringOptions) {
@@ -112,6 +125,32 @@
         recurringOptions.style.display = this.checked ? 'block' : 'none';
       });
     }
+
+    // Image Preview Logic
+    const receiptInput = document.getElementById('receiptInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const receiptPreview = document.getElementById('receiptPreview');
+    const removePreview = document.getElementById('removePreview');
+    const uploadZone = document.getElementById('uploadZone');
+
+    receiptInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          receiptPreview.src = e.target.result;
+          previewContainer.style.display = 'block';
+          uploadZone.style.display = 'none';
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+
+    removePreview.addEventListener('click', function() {
+      receiptInput.value = '';
+      previewContainer.style.display = 'none';
+      uploadZone.style.display = 'block';
+    });
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
